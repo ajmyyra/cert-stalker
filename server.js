@@ -1,6 +1,5 @@
 'use strict';
 const CertStreamClient = require('certstream');
-var IncomingWebhook = require('@slack/client').IncomingWebhook;
 
 require('dotenv').config();
 
@@ -16,11 +15,23 @@ const logger = new (winston.Logger)({
     ]
 });
 
+if (!process.env.CERTSTALK_KEYWORDS) {
+    throw Error('Env CERTSTALK_KEYWORDS missing.');
+    process.exit();
+}
+
+// TODO refactor to notifier array that completes initialize()
+var slacknotif = require('./notifiers.d/slack');
+try {
+    slacknotif.initialize();
+}
+catch (err) {
+    logger.error('Notifier returned error:', err);
+    process.exit();
+}
+
+
 const stalkItems = process.env.CERTSTALK_KEYWORDS.split(' ');
-
-// var slackurl = process.env.SLACK_WEBHOOK_URL || '';
-// var webhook = new IncomingWebhook(slackurl);
-
 var seenCerts = 0;
 
 let certstream = new CertStreamClient((message) => {
@@ -38,8 +49,10 @@ let certstream = new CertStreamClient((message) => {
         });
         
         if (found) {
-            logger.info('Certificate matched keyword', matching + ':', domains.toString(), '(through ' + message.data.chain[0].subject.CN + ')');
-            // TODO notifiers
+            const issuer = message.data.chain[0].subject.CN;
+            logger.info('Registered certificate matched keyword', matching + ':', domains.toString(), '(through ' + issuer + ')');
+            // TODO all notifiers
+            slacknotif.notify(matching, domains, issuer, logger);
         }
 
         if (seenCerts % 1000 == 0) {

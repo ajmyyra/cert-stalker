@@ -2,6 +2,8 @@
 const CertStreamClient = require('certstream');
 var IncomingWebhook = require('@slack/client').IncomingWebhook;
 
+require('dotenv').config();
+
 const tsFormat = () => (new Date()).toLocaleTimeString();
 const winston = require('winston');
 const logger = new (winston.Logger)({
@@ -14,7 +16,7 @@ const logger = new (winston.Logger)({
     ]
 });
 
-const stalkItems = 'gwneåwengweigwi joopajoo cloudflare foobarjneym sillainsit'.split(' ');
+const stalkItems = process.env.CERTSTALK_KEYWORDS.split(' ');
 
 // var slackurl = process.env.SLACK_WEBHOOK_URL || '';
 // var webhook = new IncomingWebhook(slackurl);

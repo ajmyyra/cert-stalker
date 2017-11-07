@@ -1,0 +1,27 @@
+{
+    "name": "cert-stalker",
+    "version": "0.5.0",
+    "description": "Cert Stalker",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/ajmyyra/cert-stalker"
+    },
+    "main": "server.js",
+    "scripts": {
+        "start": "nodemon",
+        "build": "docker-compose build",
+        "docker-start": "docker-compose up -d && echo Cert Stalker is now up & running.",
+        "docker-stop": "docker-compose down"
+    },
+    "author": "Antti Myyrä",
+    "license": "MIT",
+    "dependencies": {
+        "certstream": "^1.1.0",
+        "winston": "^2.4.0",
+        "@slack/client": "^3.14.1",
+        "nodemailer": "^4.3.1"
+    },
+    "devDependencies": {
+        "nodemon": "^1.12.0"
+    }
+}

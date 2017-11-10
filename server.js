@@ -39,7 +39,9 @@ let certstream = new CertStreamClient((message) => {
         seenCerts++;
         var found = false;
         var matching = '';
-        const domains = message.data.leaf_cert.all_domains;
+        const chain = message.data.chain;
+        const certificate = message.data.leaf_cert;
+        const domains = certificate.all_domains;
 
         stalkItems.forEach((item) => {
             if (domains.some(san => san.includes(item))) {
@@ -49,10 +51,9 @@ let certstream = new CertStreamClient((message) => {
         });
         
         if (found) {
-            const issuer = message.data.chain[0].subject.CN;
-            logger.info('Registered certificate matched keyword', matching + ':', domains.toString(), '(through ' + issuer + ')');
+            logger.info('Registered certificate matched keyword', matching + ':', domains.toString(), '(through ' + chain[0].subject.CN + ')');
             // TODO all notifiers
-            slacknotif.notify(matching, domains, issuer, logger);
+            slacknotif.notify(matching, certificate, chain, logger);
         }
 
         if (seenCerts % 1000 == 0) {
@@ -61,7 +62,7 @@ let certstream = new CertStreamClient((message) => {
     }
     else {
         if (message.message_type === 'heartbeat') {
-            logger.debug('Received heartbeat message from CertStream with timestamp of', message.timestamp);
+            logger.debug('Received a heartbeat message from CertStream with timestamp of', message.timestamp);
         }
         else {
             logger.debug('Unidentified message received: ', message);

@@ -1,5 +1,6 @@
 'use strict';
 const CertStreamClient = require('certstream');
+const fs = require('fs');
 
 require('dotenv').config();
 
@@ -16,20 +17,24 @@ const logger = new (winston.Logger)({
 });
 
 if (!process.env.CERTSTALK_KEYWORDS) {
-    throw Error('Env CERTSTALK_KEYWORDS missing.');
+    throw Error('Environment variable CERTSTALK_KEYWORDS missing.');
     process.exit();
 }
 
-// TODO refactor to notifier array that completes initialize()
-var slacknotif = require('./notifiers.d/slack');
-try {
-    slacknotif.initialize();
-}
-catch (err) {
-    logger.error('Notifier returned error:', err);
-    process.exit();
-}
-
+var notifiers = [];
+fs.readdirSync(__dirname + '/notifiers.d').filter((file) => {
+    return file.indexOf('.') !== 0 && file.slice(-3) === '.js';
+}).forEach((file) => {
+    const notifier = require(__dirname + '/notifiers.d/' + file);
+    notifier.initialize()
+    .then(() => {
+        notifiers.push(notifier);
+        logger.info('Notifier', file, 'added.');
+    })
+    .catch((err) => {
+        logger.info('Did not add notifier', file + ':', err);
+    });
+});
 
 const stalkItems = process.env.CERTSTALK_KEYWORDS.split(' ');
 var seenCerts = 0;
@@ -52,8 +57,9 @@ let certstream = new CertStreamClient((message) => {
         
         if (found) {
             logger.info('Registered certificate matched keyword', matching + ':', domains.toString(), '(through ' + chain[0].subject.CN + ')');
-            // TODO all notifiers
-            slacknotif.notify(matching, certificate, chain, logger);
+            notifiers.forEach((notifier) => {
+                notifier.notify(matching, certificate, chain, logger);
+            })
         }
 
         if (seenCerts % 1000 == 0) {

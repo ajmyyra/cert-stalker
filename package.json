@@ -19,7 +19,7 @@
         "@slack/client": "^3.14.1",
         "certstream": "^1.1.0",
         "dotenv": "^4.0.0",
-        "nodemailer": "^4.3.1",
+        "nodemailer": "^4.4.0",
         "winston": "^2.4.0"
     },
     "devDependencies": {

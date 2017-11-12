@@ -4,9 +4,13 @@ var IncomingWebhook = require('@slack/client').IncomingWebhook;
 
 
 exports.initialize = () => {
-    if (!process.env.CERTSTALK_SLACK_WEBHOOK_URL) {
-        throw Error('Env SLACK_WEBHOOK_URL undefined.');
-    }
+    return new Promise((resolve, reject) => {
+        if (!process.env.CERTSTALK_SLACK_WEBHOOK_URL) {
+            reject('Environment variable CERTSTALK_SLACK_WEBHOOK_URL missing.')
+        }
+
+        resolve();
+    });
 } 
 
 exports.notify = (matching, certificate, chain, logger) => {
@@ -28,7 +32,7 @@ exports.notify = (matching, certificate, chain, logger) => {
     else {
         notification.username = "CertStalker";
     }
-    notification.text = 'Certificate matching keyword ' + matching + ' was registered through ' + chain[0].subject.O + '. More information through Google <https://transparencyreport.google.com/https/certificates?cert_search_auth=&cert_search_cert=&cert_search=include_expired:true;include_subdomains:true;domain:' + domains[0] + '&lu=cert_search|Transparency Report>.';
+    notification.text = 'Certificate matching ' + matching + ' was registered through ' + chain[0].subject.O + '. More information through <https://crt.sh/?q=' + domains[0] + '|crt.sh>.';
 
     notification.attachments = [];
     var attachment = {}
@@ -43,7 +47,7 @@ exports.notify = (matching, certificate, chain, logger) => {
     }
     else {
         attachment.footer = 'CertStalker';
-        attachment.ts = new Date.now();
+        attachment.ts = Date.now();
     }
     if (process.env.CERTSTALK_SLACK_FOOTER_ICON) {
         attachment.footer_icon = process.env.CERTSTALK_SLACK_FOOTER_ICON;
@@ -53,19 +57,26 @@ exports.notify = (matching, certificate, chain, logger) => {
 
     const notBefore = new Date(certificate.not_before * 1000);
     const notAfter = new Date(certificate.not_after * 1000);
-    attachment.pretext = 'Certificate is valid from ' + notBefore.toISOString().substring(0, 10) + ' to ' + notAfter.toISOString().substring(0, 10) + '.'; // TODO
+    attachment.pretext = 'Certificate is valid from ' + notBefore.toISOString().substring(0, 10) + ' to ' + notAfter.toISOString().substring(0, 10) + '.';
 
     attachment.fields = [];
-    domains.forEach((domain) => {
+    var attachmentDomains = [];
+    if (domains.length > 10) {
+        attachmentDomains = domains.slice(0, 10);
+    }
+    else {
+        attachmentDomains = domains;
+    }
+
+    attachmentDomains.forEach((domain) => {
         var domobject = {};
         domobject.value = domain;
         domobject.short = true;
         attachment.fields.push(domobject);
     });
-
+    
     notification.attachments.push(attachment);
 
-    //logger.debug(JSON.stringify(notification, null, 2)); //debug
     webhook.send(notification, (err, header, statusCode, body) => {
         if (err) {
             logger.error('Error:', err);

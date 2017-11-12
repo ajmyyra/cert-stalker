@@ -30,7 +30,7 @@ exports.notify = (matching, certificate, chain, logger) => {
         notification.username = process.env.CERTSTALK_SLACK_USERNAME;
     }
     else {
-        notification.username = "CertStalker";
+        notification.username = "Cert Stalker";
     }
     notification.text = 'Certificate matching ' + matching + ' was registered through ' + chain[0].subject.O + '. More information through <https://crt.sh/?q=' + domains[0] + '|crt.sh>.';
 

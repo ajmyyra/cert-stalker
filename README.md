@@ -1,4 +1,4 @@
-# Program to watch Certstream and notify when something is seen
+# Cert Stalker spies on your certificates
 
 Cert Stalker is a Node.JS program to watch Certificate Transparency streams through CertStream (https://certstream.calidog.io/) and to log matches (and notify you of any matching certificates, if enabled). It enables you to react to possible phishing attempts against your customers, watch that your Let's Encrypt renewals are processing or to stalk someones subdomains, since somebody thought it was a good idea to show them all through Certificate Transparency streams. Use wildcard certificates.
 

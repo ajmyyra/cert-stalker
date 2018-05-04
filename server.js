@@ -37,6 +37,7 @@ fs.readdirSync(__dirname + '/notifiers.d').filter((file) => {
 });
 
 const stalkItems = process.env.CERTSTALK_KEYWORDS.split(' ');
+logger.info('Started stalking new certificates for keywords:', process.env.CERTSTALK_KEYWORDS);
 var seenCerts = 0;
 
 let certstream = new CertStreamClient((message) => {

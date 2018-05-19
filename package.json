@@ -17,7 +17,7 @@
     "author": "Antti Myyrä",
     "license": "MIT",
     "dependencies": {
-        "@slack/client": "^4.2.0",
+        "@slack/client": "^4.2.2",
         "certstream": "^1.1.0",
         "dotenv": "^5.0.1",
         "nodemailer": "^4.6.4",
